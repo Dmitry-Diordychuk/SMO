@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.timer2 = new System.Windows.Forms.Timer(this.components);
-            this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.timerArrival = new System.Windows.Forms.Timer(this.components);
+            this.timerSevice = new System.Windows.Forms.Timer(this.components);
+            this.progressBarQueue = new System.Windows.Forms.ProgressBar();
             this.textBoxA = new System.Windows.Forms.TextBox();
             this.textBoxB = new System.Windows.Forms.TextBox();
             this.labelA = new System.Windows.Forms.Label();
@@ -50,7 +50,7 @@
             this.labelArrive = new System.Windows.Forms.Label();
             this.labelServe = new System.Windows.Forms.Label();
             this.labelCounter = new System.Windows.Forms.Label();
-            this.timerMidTimeInQueue = new System.Windows.Forms.Timer(this.components);
+            this.timerAverageInQueue = new System.Windows.Forms.Timer(this.components);
             this.listView1 = new System.Windows.Forms.ListView();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -60,19 +60,19 @@
             // 
             // timer1
             // 
-            this.timer1.Tick += new System.EventHandler(this.Timer1_Tick);
+            this.timerArrival.Tick += new System.EventHandler(this.TimerArrival_Tick);
             // 
             // timer2
             // 
-            this.timer2.Tick += new System.EventHandler(this.Timer2_Tick);
+            this.timerSevice.Tick += new System.EventHandler(this.TimerService_Tick);
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(340, 96);
-            this.progressBar1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(205, 86);
-            this.progressBar1.TabIndex = 0;
+            this.progressBarQueue.Location = new System.Drawing.Point(340, 96);
+            this.progressBarQueue.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.progressBarQueue.Name = "progressBar1";
+            this.progressBarQueue.Size = new System.Drawing.Size(205, 86);
+            this.progressBarQueue.TabIndex = 0;
             // 
             // textBoxA
             // 
@@ -239,7 +239,7 @@
             // 
             // timerMidTimeInQueue
             // 
-            this.timerMidTimeInQueue.Tick += new System.EventHandler(this.timerStatistic);
+            this.timerAverageInQueue.Tick += new System.EventHandler(this.timerStatistic);
             // 
             // listView1
             // 
@@ -292,7 +292,7 @@
             this.Controls.Add(this.labelA);
             this.Controls.Add(this.textBoxB);
             this.Controls.Add(this.textBoxA);
-            this.Controls.Add(this.progressBar1);
+            this.Controls.Add(this.progressBarQueue);
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -306,9 +306,9 @@
 
         #endregion
 
-        private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.Timer timer2;
-        private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.Timer timerArrival;
+        private System.Windows.Forms.Timer timerSevice;
+        private System.Windows.Forms.ProgressBar progressBarQueue;
         private System.Windows.Forms.TextBox textBoxA;
         private System.Windows.Forms.TextBox textBoxB;
         private System.Windows.Forms.Label labelA;
@@ -327,7 +327,7 @@
         private System.Windows.Forms.Label labelArrive;
         private System.Windows.Forms.Label labelServe;
         private System.Windows.Forms.Label labelCounter;
-        private System.Windows.Forms.Timer timerMidTimeInQueue;
+        private System.Windows.Forms.Timer timerAverageInQueue;
         private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label1;

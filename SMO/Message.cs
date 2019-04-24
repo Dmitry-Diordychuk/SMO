@@ -10,8 +10,7 @@ namespace SMO
     class Message
     {
         public Stopwatch watch;
-        //public bool Lost { get; set; } = false;
-
+        public static List<long> EachMessageTimeInQueue = new List<long>();
 
         public void StartTimer()
         {
@@ -20,6 +19,7 @@ namespace SMO
         public void StopTimer()
         {
             watch.Stop();
+            EachMessageTimeInQueue.Add(watch.ElapsedMilliseconds);
         }
     }
 }

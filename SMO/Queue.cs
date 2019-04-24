@@ -17,6 +17,8 @@ namespace SMO
 
         public static Queue<Message> Messages = new Queue<Message>();
 
+        public static List<int> StatisticSizes = new List<int>();
+
         static public void AddTo()
         {
             if( Counter < Size )

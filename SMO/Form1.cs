@@ -13,10 +13,9 @@ namespace SMO
 {
     public partial class Form1 : Form
     {
-        int counter = 0;
-        int max = 1000;
         int speed = 10;
-        Stopwatch modelingTime = new Stopwatch();
+        Stopwatch totalModelingTime = new Stopwatch();
+
         public Form1()
         {
             InitializeComponent();
@@ -24,161 +23,150 @@ namespace SMO
         
         private void Form1_Load( object sender, EventArgs e )
         {
-            int res1;
-            if ((res1 = (int)(ArrivalGenerator.GetNextTime() * speed)) == 0)
-                timer1.Interval = 1;
-            else
-                timer1.Interval = res1;
-            labelArrive.Text = $"Arrive Time: {timer1.Interval}";
+            SetTimerInterval(Arrival.GetNextTime(), timerArrival, speed);
+            labelArrive.Text = $"Arrive Time: {timerArrival.Interval}";
 
-            int res2;
-            if ((res2 = (int)(Service.Work() * speed)) == 0)
-                timer2.Interval = 1;
-            else
-                timer2.Interval = res2;
+            SetTimerInterval(Service.Work(), timerSevice, speed);
+            labelServe.Text = $"Serve Time: {timerSevice.Interval}";
 
-            labelServe.Text = $"Serve Time: {timer2.Interval}";
+            timerAverageInQueue.Interval = 1000;
 
-            timerMidTimeInQueue.Interval = 1000;
-
-            progressBar1.Minimum = 0;
-            progressBar1.Maximum = 100;
-            progressBar1.Value = 0;
-
+            progressBarQueue.Minimum = 0;
+            progressBarQueue.Value = 0;
         }
 
-        private void Timer1_Tick( object sender, EventArgs e )
+        private void SetTimerInterval(double method, Timer timer,int speed)
+        {
+            int nextTime = (int)(method * speed);
+            if (nextTime != 0)
+                timer.Interval = nextTime;
+            else
+                timer.Interval = 1;
+        }
+
+        private void TimerArrival_Tick( object sender, EventArgs e )
         {
             Queue.AddTo();
-            //pictureBox1.Image = Image.FromFile( "img/ArrivalGreen.jpg" );
-            //pictureBox1.Image = Image.FromFile( "img/Arrival.jpg" );
-            if( progressBar1.Value < progressBar1.Maximum)
-                ++progressBar1.Value;
+
+            progressBarQueue.Value = Queue.Messages.Count;
             labelProgress.Text = Queue.Counter.ToString();
-            int res1;
-            if ((res1 = (int)(ArrivalGenerator.GetNextTime() * speed)) == 0)
-                timer1.Interval = 1;
-            else
-                timer1.Interval = res1;
-            labelArrive.Text = $"Arrive Time: {timer1.Interval}";
+
+            SetTimerInterval(Arrival.GetNextTime(), timerArrival, speed);
+
+            labelArrive.Text = $"Arrive Time: {timerArrival.Interval}";
             labelLosses.Text = $"Losses: {Queue.Losses}";
-            counter++;
-            labelCounter.Text = $"Counter: {counter}";
-            if( counter+Queue.Losses > max )
+            labelCounter.Text = $"Arrival.Counter: {Arrival.Counter}";
+            if( Arrival.Closed )
             {
-                timer1.Stop();
+                timerArrival.Stop();
             }
         }
-        List<long> timesInQueue = new List<long>();
-        List<int> midQueueSize = new List<int>();
-        Stopwatch aoTime = new Stopwatch();
+
+
         //АО
-        private void Timer2_Tick( object sender, EventArgs e )
+        Stopwatch ServiceTime = new Stopwatch();
+        private void TimerService_Tick( object sender, EventArgs e )
         {
+            if(!ServiceTime.IsRunning)
+                ServiceTime.Start();
+
             long timeQueueTemp = Queue.GetFrom();
-            if(!aoTime.IsRunning)
-                aoTime.Start();
             if (timeQueueTemp > -1)
             {
-                timesInQueue.Add(timeQueueTemp);
-                labelProgress.Text = (--progressBar1.Value).ToString();
-                int res;
-                if ((res = (int)(Service.Work() * speed)) == 0)
-                    timer2.Interval = 1;
-                else
-                    timer2.Interval = res;
-                labelServe.Text = $"Serve Time: {timer2.Interval}";
+                progressBarQueue.Value = Queue.Messages.Count;
+                SetTimerInterval(Service.Work(), timerSevice, speed);
+                labelServe.Text = $"Serve Time: {timerSevice.Interval}";
             }
             else
             {
-                aoTime.Stop();
-                timer2.Interval = 1;
+                //Очередь пуста ждем -1
+                ServiceTime.Stop();
+
+                timerSevice.Interval = 1;
             }
-            //Условия окончания моделирования
-            if( counter+Queue.Losses > max && Queue.Empty == true)
+            //Условия окончания моделирования и статистика
+            if( Arrival.Closed && Queue.Empty)
             {
-                timer2.Stop();
-                double losses = (double)Queue.Losses / max ;
-                aoTime.Stop();
-                modelingTime.Stop();
-                double time = (double)aoTime.ElapsedMilliseconds / (double)modelingTime.ElapsedMilliseconds;
-                listView1.Items.Add("Коэффициент загрузки АО: " + (time).ToString());
-                listView1.Items.Add("Среднее время ожидания: "+(timesInQueue.Sum() / timesInQueue.Count).ToString()).EnsureVisible();
-                listView1.Items.Add("Средняя длина очереди: " + (midQueueSize.Sum() / midQueueSize.Count).ToString()).EnsureVisible();
-                listView1.Items.Add("Вероятность потери:" + (losses).ToString());
+                timerSevice.Stop();
+                ServiceTime.Stop();
+                totalModelingTime.Stop();
+
+                double loadOfServiceCoefficient = (double)ServiceTime.ElapsedMilliseconds / (double)totalModelingTime.ElapsedMilliseconds;
+                listView1.Items.Add("Коэффициент загрузки АО: " + (loadOfServiceCoefficient).ToString());
+                listView1.Items.Add("Среднее время ожидания: " + (Message.EachMessageTimeInQueue.Sum() / Message.EachMessageTimeInQueue.Count).ToString()).EnsureVisible();
+                listView1.Items.Add("Средняя длина очереди: " + (Queue.StatisticSizes.Sum() / Queue.StatisticSizes.Count).ToString()).EnsureVisible();
+                double lossProbability = (double)Queue.Losses / Arrival.Max;
+                listView1.Items.Add("Вероятность потери:" + (lossProbability).ToString());
+                //Подсчет оптимальной очереди
                 if (Queue.Losses == 0)
-                    listView1.Items.Add($"Оптимальная очередь: {size}");
+                    listView1.Items.Add($"Оптимальная очередь: {Queue.Size}");
                 else
-                    listView1.Items.Add($"Очередь: {size}");
-                if (losses != 0)
+                    listView1.Items.Add($"Очередь: {Queue.Size}");
+                if (lossProbability != 0)
                 {
-                    size = size + (int)(losses * 1000);
-                    StartModelling(size);
+                    Queue.Size = Queue.Size + (int)(lossProbability * 1000);
+                    StartModelling();
                 }
-                else if (time < 0.90 && Queue.Size > 1)
+                else if (loadOfServiceCoefficient < 0.90 && Queue.Size > 1)
                 {
-                    size = 1;
-                    StartModelling(size);
+                    Queue.Size = 1;
+                    StartModelling();
                 }
             }
         }
-        int size;
+       
         private void ButtonSimulate_Click( object sender, EventArgs e )
         {
-            max = Int32.Parse(textBox1.Text);
-
-            ArrivalGenerator.a = Double.Parse(textBoxA.Text);
-            ArrivalGenerator.b = Double.Parse(textBoxB.Text);
+            Arrival.Max = Int32.Parse(textBox1.Text);
+            Arrival.a = Double.Parse(textBoxA.Text);
+            Arrival.b = Double.Parse(textBoxB.Text);
 
             Service.lambda = Double.Parse(textBoxLambda.Text);
             Service.shape = Int32.Parse(textBoxShape.Text);
 
-            size = Int32.Parse(textBoxSize.Text);
-            StartModelling(size);
+            Queue.Size = Int32.Parse(textBoxSize.Text);
+            StartModelling();
 
         }
 
-        private void StartModelling(int size)
+        private void StartModelling()
         {
 
             int res1;
-            if ((res1 = (int)(ArrivalGenerator.GetNextTime() * speed)) == 0)
-                timer1.Interval = 1;
+            if ((res1 = (int)(Arrival.GetNextTime() * speed)) == 0)
+                timerArrival.Interval = 1;
             else
-                timer1.Interval = res1;
-            labelArrive.Text = $"Arrive Time: {timer1.Interval}";
+                timerArrival.Interval = res1;
+            labelArrive.Text = $"Arrive Time: {timerArrival.Interval}";
 
             int res2;
             if ((res2 = (int)(Service.Work() * speed)) == 0)
-                timer2.Interval = 1;
+                timerSevice.Interval = 1;
             else
-                timer2.Interval = res2;
+                timerSevice.Interval = res2;
             //сброс
-            counter = 0;
+            Arrival.Counter = 0;
             Queue.Losses = 0;
 
             
             
-            Queue.Size = size;
-            progressBar1.Maximum = size;
+    
+            progressBarQueue.Maximum = Queue.Size;
             
 
-            timer1.Enabled = true;
-            timer1.Start();
-            timer2.Enabled = true;
-            timer2.Start();
-            timerMidTimeInQueue.Enabled = true;
-            timerMidTimeInQueue.Start();
+            timerArrival.Enabled = true;
+            timerArrival.Start();
+            timerSevice.Enabled = true;
+            timerSevice.Start();
+            timerAverageInQueue.Enabled = true;
+            timerAverageInQueue.Start();
 
-            modelingTime.Start();
+            totalModelingTime.Start();
         }
 
         private void timerStatistic(object sender, EventArgs e)
         {
-
-            midQueueSize.Add(progressBar1.Value);
-
-           
+            Queue.StatisticSizes.Add(progressBarQueue.Value);
         }
     }
 }
