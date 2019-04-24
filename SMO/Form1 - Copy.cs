@@ -115,7 +115,7 @@ namespace SMO
                     size = size + (int)(losses * 1000);
                     StartModelling(size);
                 }
-                else if (time < 0.90 && Queue.Size > 1)
+                else if (time < 0.99 && Queue.Size > 1)
                 {
                     size = 1;
                     StartModelling(size);

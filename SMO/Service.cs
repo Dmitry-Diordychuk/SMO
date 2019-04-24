@@ -26,10 +26,6 @@ namespace SMO
                 R = Convert.ToDouble( rand.Next( 100 ) ) / 100;
             }
             BusyTime = - ( 1 / ( shape * lambda ) ) * sum;
-            if ( BusyTime == 0 )
-            {
-                BusyTime = 1;
-            }
             return BusyTime;
         }
     }

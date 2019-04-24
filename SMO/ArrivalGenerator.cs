@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
-using Accord.Statistics.Distributions.Univariate;
 
 namespace SMO
 {
@@ -17,7 +16,7 @@ namespace SMO
         {
             Random rand = new Random();
             double R = Convert.ToDouble( rand.Next( 1,100 ) ) / 100;
-            time = (int)Math.Ceiling(a + ( b - a ) * R);
+            time = (int)Math.Round(a + ( b - a ) * R);
             return time;
         }
     }

@@ -15,10 +15,14 @@ namespace SMO
         public static int Counter { get; set; } = 0;
         public static int Losses { get; set; } = 0;
 
+        public static Queue<Message> Messages = new Queue<Message>();
+
         static public void AddTo()
         {
             if( Counter < Size )
             {
+                Messages.Enqueue(new Message());
+                Messages.Last().StartTimer();
                 Counter++;
                 Empty = false;
             }
@@ -28,18 +32,19 @@ namespace SMO
                 Losses++;
             }
         }
-        static public bool GetFrom()
+        static public long GetFrom()
         {
             if( !Empty )
             {
+                Messages.Peek().StopTimer();
                 Counter--;
                 if( Counter == 0 )
                     Empty = true;
-                return true;
+                return Messages.Dequeue().watch.ElapsedMilliseconds;
             }
             else
             {
-                return false;
+                return -1;
             }
         }
     }
